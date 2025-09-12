@@ -12,5 +12,5 @@ steps:
     duration: 0.5
     
   - action: "write_text"
-    text: "clear"
+    text: "echo 'hello world'"
     target: "current_session"
