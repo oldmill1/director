@@ -1,0 +1,16 @@
+name: "Hello World iTerm Test"
+description: "A simple test that opens iTerm, creates a window, and runs clear"
+
+steps:
+  - action: "activate_app"
+    app: "iTerm2"
+    
+  - action: "create_window"
+    profile: "default"
+    
+  - action: "wait"
+    duration: 0.5
+    
+  - action: "write_text"
+    text: "clear"
+    target: "current_session"
