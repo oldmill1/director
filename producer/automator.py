@@ -36,27 +36,30 @@ class ProducerAutomator:
                 print(f"\n🎬 Scene: {scene_name}")
                 self._run_parts(scene_parts)
         elif isinstance(scenes, list) and len(scenes) > 0 and isinstance(scenes[0], dict) and 'name' in scenes[0]:
-            # Scenes are organized into parts (new format: [{name: "setup", parts: [...]}])
+            # Scenes are organized into parts (new format: [{name: "setup", app: "iTerm", parts: [...]}])
             for scene in scenes:
                 scene_name = scene.get('name', 'Unnamed Scene')
+                scene_app = scene.get('app', 'iTerm')
                 scene_parts = scene.get('parts', [])
-                print(f"\n🎬 Scene: {scene_name}")
-                self._run_parts(scene_parts)
+                print(f"\n🎬 Scene: {scene_name} (App: {scene_app})")
+                
+                # Only start the app if it's different from the current one
+                if not self.current_app or self.current_app.app_name != scene_app:
+                    self.current_app = self.app_registry.get_app(scene_app)
+                    self.current_app.start()
+                
+                self._run_parts(scene_parts, scene_app)
         else:
             # Scenes are a flat list
             self._run_parts(scenes)
     
-    def _run_parts(self, parts):
+    def _run_parts(self, parts, scene_app=None):
         """Run a list of parts"""
         for i, part in enumerate(parts, 1):
             action = part.get('action')
             print(f"  Part {i}: {action}")
             
-            if action == 'start':
-                app_name = part.get('app', 'iTerm2')
-                self.current_app = self.app_registry.get_app(app_name)
-                self.current_app.start(**part)
-            elif action == 'wait':
+            if action == 'sleep':
                 duration = part.get('duration', 0.5)
                 if self.current_app:
                     self.current_app.wait(duration)

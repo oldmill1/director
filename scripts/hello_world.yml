@@ -3,52 +3,52 @@ description: "A demo that cycles through all window positions"
 
 scenes:
   - name: "Setup"
+    app: "iTerm"
     parts:
-      - action: "start"
-        app: "iTerm"
-        
-      - action: "wait"
+      - action: "sleep"
         duration: 0.5
         
       - action: "write"
         text: "echo 'Starting position demo...'"
 
   - name: "Position Demo"
+    app: "iTerm"
     parts:
       - action: "position"
         text: "center center"
         
-      - action: "wait"
+      - action: "sleep"
         duration: 1.0
         
       - action: "position"
         text: "top left"
         
-      - action: "wait"
+      - action: "sleep"
         duration: 1.0
         
       - action: "position"
         text: "top right"
         
-      - action: "wait"
+      - action: "sleep"
         duration: 1.0
         
       - action: "position"
         text: "bottom left"
         
-      - action: "wait"
+      - action: "sleep"
         duration: 1.0
         
       - action: "position"
         text: "bottom right"
         
-      - action: "wait"
+      - action: "sleep"
         duration: 1.0
         
       - action: "position"
         text: "center center"
 
   - name: "Cleanup"
+    app: "iTerm"
     parts:
       - action: "write"
         text: "echo 'Position demo complete!'"
