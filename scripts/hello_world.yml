@@ -10,3 +10,6 @@ steps:
     
   - action: "write"
     text: "echo 'hello world'"
+
+  - action: "position"
+    text: "center center" # takes "x y" or "center center" or "top left" or "bottom right" etc.

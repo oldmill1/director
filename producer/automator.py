@@ -52,6 +52,14 @@ class ProducerAutomator:
                     self.current_app.write(text, **extra_params)
                 else:
                     print(f"    ⚠️  No active app to write to")
+            elif action == 'position':
+                position = step.get('text', 'center center')
+                if self.current_app:
+                    # Extract only the additional parameters, not 'text' or 'action'
+                    extra_params = {k: v for k, v in step.items() if k not in ['text', 'action']}
+                    self.current_app.position(position, **extra_params)
+                else:
+                    print(f"    ⚠️  No active app to position")
             else:
                 print(f"    ⚠️  Unknown action: {action}")
     
