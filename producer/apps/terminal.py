@@ -119,7 +119,21 @@ class TerminalApp(BaseApp):
         
         return self.run_applescript(script)
     
+    def close(self, **kwargs):
+        """Close the current iTerm window (like Cmd+W)"""
+        script = f'''
+        tell application "{self.app_name}"
+            close current window
+        end tell
+        '''
+        return self.run_applescript(script)
+    
+    def quit(self, **kwargs):
+        """Quit the entire iTerm application (like Cmd+Q)"""
+        script = f'tell application "{self.app_name}" to quit'
+        return self.run_applescript(script)
+    
     def supports_action(self, action):
         """Check if this iTerm2 app supports a specific action"""
-        iterm_actions = ['start', 'write', 'wait', 'create_window', 'position']
+        iterm_actions = ['start', 'write', 'wait', 'create_window', 'position', 'close', 'quit']
         return action in iterm_actions

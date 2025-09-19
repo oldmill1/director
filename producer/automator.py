@@ -82,6 +82,22 @@ class ProducerAutomator:
                     self.current_app.position(position, **extra_params)
                 else:
                     print(f"    ⚠️  No active app to position")
+            elif action == 'close':
+                if self.current_app:
+                    # Extract only the additional parameters, not 'action'
+                    extra_params = {k: v for k, v in part.items() if k not in ['action']}
+                    self.current_app.close(**extra_params)
+                else:
+                    print(f"    ⚠️  No active app to close")
+            elif action == 'quit':
+                if self.current_app:
+                    # Extract only the additional parameters, not 'action'
+                    extra_params = {k: v for k, v in part.items() if k not in ['action']}
+                    self.current_app.quit(**extra_params)
+                    # Clear current app since we quit it
+                    self.current_app = None
+                else:
+                    print(f"    ⚠️  No active app to quit")
             else:
                 print(f"    ⚠️  Unknown action: {action}")
     
