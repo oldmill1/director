@@ -1,9 +1,9 @@
 name: "Window Position Demo"
 description: "A demo that cycles through all window positions"
 
-steps:
+scenes:
   - name: "Setup"
-    steps:
+    parts:
       - action: "start"
         app: "iTerm"
         
@@ -14,7 +14,7 @@ steps:
         text: "echo 'Starting position demo...'"
 
   - name: "Position Demo"
-    steps:
+    parts:
       - action: "position"
         text: "center center"
         
@@ -49,6 +49,6 @@ steps:
         text: "center center"
 
   - name: "Cleanup"
-    steps:
+    parts:
       - action: "write"
         text: "echo 'Position demo complete!'"

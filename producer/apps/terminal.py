@@ -105,12 +105,12 @@ class TerminalApp(BaseApp):
                 print(f"    ⚠️  Invalid position format: {position}")
                 return None
         
-        # Use System Events to move the window
-        # The process name is "iTerm2" even though the app name is "iTerm"
-        process_name = "iTerm2" if self.app_name == "iTerm" else self.app_name
+        # Use System Events to move the current active window
+        # This will position whatever window is currently focused
         script = f'''
         tell application "System Events"
-            tell process "{process_name}"
+            set frontApp to first application process whose frontmost is true
+            tell frontApp
                 set position of window 1 to {{{x}, {y}}}
                 set size of window 1 to {{{window_width}, {window_height}}}
             end tell

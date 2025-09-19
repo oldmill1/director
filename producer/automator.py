@@ -26,56 +26,56 @@ class ProducerAutomator:
             return None
     
     def run_script(self, script_data):
-        """Execute a parsed script by running each step"""
-        steps = script_data.get('steps', [])
+        """Execute a parsed script by running each scene"""
+        scenes = script_data.get('scenes', [])
         
-        # Check if steps is organized into parts
-        if isinstance(steps, dict):
-            # Steps are organized into parts (old format: part_name: steps)
-            for part_name, part_steps in steps.items():
-                print(f"\n📋 Part: {part_name}")
-                self._run_steps(part_steps)
-        elif isinstance(steps, list) and len(steps) > 0 and isinstance(steps[0], dict) and 'name' in steps[0]:
-            # Steps are organized into parts (new format: [{name: "setup", steps: [...]}])
-            for part in steps:
-                part_name = part.get('name', 'Unnamed Part')
-                part_steps = part.get('steps', [])
-                print(f"\n📋 Part: {part_name}")
-                self._run_steps(part_steps)
+        # Check if scenes are organized into parts
+        if isinstance(scenes, dict):
+            # Scenes are organized into parts (old format: scene_name: parts)
+            for scene_name, scene_parts in scenes.items():
+                print(f"\n🎬 Scene: {scene_name}")
+                self._run_parts(scene_parts)
+        elif isinstance(scenes, list) and len(scenes) > 0 and isinstance(scenes[0], dict) and 'name' in scenes[0]:
+            # Scenes are organized into parts (new format: [{name: "setup", parts: [...]}])
+            for scene in scenes:
+                scene_name = scene.get('name', 'Unnamed Scene')
+                scene_parts = scene.get('parts', [])
+                print(f"\n🎬 Scene: {scene_name}")
+                self._run_parts(scene_parts)
         else:
-            # Steps are a flat list
-            self._run_steps(steps)
+            # Scenes are a flat list
+            self._run_parts(scenes)
     
-    def _run_steps(self, steps):
-        """Run a list of steps"""
-        for i, step in enumerate(steps, 1):
-            action = step.get('action')
-            print(f"  Step {i}: {action}")
+    def _run_parts(self, parts):
+        """Run a list of parts"""
+        for i, part in enumerate(parts, 1):
+            action = part.get('action')
+            print(f"  Part {i}: {action}")
             
             if action == 'start':
-                app_name = step.get('app', 'iTerm2')
+                app_name = part.get('app', 'iTerm2')
                 self.current_app = self.app_registry.get_app(app_name)
-                self.current_app.start(**step)
+                self.current_app.start(**part)
             elif action == 'wait':
-                duration = step.get('duration', 0.5)
+                duration = part.get('duration', 0.5)
                 if self.current_app:
                     self.current_app.wait(duration)
                 else:
                     import time
                     time.sleep(duration)
             elif action == 'write':
-                text = step.get('text', '')
+                text = part.get('text', '')
                 if self.current_app:
                     # Extract only the additional parameters, not 'text' or 'action'
-                    extra_params = {k: v for k, v in step.items() if k not in ['text', 'action']}
+                    extra_params = {k: v for k, v in part.items() if k not in ['text', 'action']}
                     self.current_app.write(text, **extra_params)
                 else:
                     print(f"    ⚠️  No active app to write to")
             elif action == 'position':
-                position = step.get('text', 'center center')
+                position = part.get('text', 'center center')
                 if self.current_app:
                     # Extract only the additional parameters, not 'text' or 'action'
-                    extra_params = {k: v for k, v in step.items() if k not in ['text', 'action']}
+                    extra_params = {k: v for k, v in part.items() if k not in ['text', 'action']}
                     self.current_app.position(position, **extra_params)
                 else:
                     print(f"    ⚠️  No active app to position")
