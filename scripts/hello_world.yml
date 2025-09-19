@@ -1,5 +1,5 @@
-name: "Hello World iTerm Test"
-description: "A simple test that opens iTerm and runs hello world"
+name: "Window Position Demo"
+description: "A demo that cycles through all window positions"
 
 steps:
   - action: "start"
@@ -9,7 +9,40 @@ steps:
     duration: 0.5
     
   - action: "write"
-    text: "echo 'hello world'"
+    text: "echo 'Starting position demo...'"
 
   - action: "position"
-    text: "center center" # takes "x y" or "center center" or "top left" or "bottom right" etc.
+    text: "center center"
+    
+  - action: "wait"
+    duration: 1.0
+    
+  - action: "position"
+    text: "top left"
+    
+  - action: "wait"
+    duration: 1.0
+    
+  - action: "position"
+    text: "top right"
+    
+  - action: "wait"
+    duration: 1.0
+    
+  - action: "position"
+    text: "bottom left"
+    
+  - action: "wait"
+    duration: 1.0
+    
+  - action: "position"
+    text: "bottom right"
+    
+  - action: "wait"
+    duration: 1.0
+    
+  - action: "position"
+    text: "center center"
+    
+  - action: "write"
+    text: "echo 'Position demo complete!'"
