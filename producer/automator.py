@@ -29,6 +29,18 @@ class ProducerAutomator:
         """Execute a parsed script by running each step"""
         steps = script_data.get('steps', [])
         
+        # Check if steps is organized into parts
+        if isinstance(steps, dict):
+            # Steps are organized into parts
+            for part_name, part_steps in steps.items():
+                print(f"\n📋 Part: {part_name}")
+                self._run_steps(part_steps)
+        else:
+            # Steps are a flat list
+            self._run_steps(steps)
+    
+    def _run_steps(self, steps):
+        """Run a list of steps"""
         for i, step in enumerate(steps, 1):
             action = step.get('action')
             print(f"  Step {i}: {action}")
