@@ -1,0 +1,281 @@
+# Producer - Knowledge Transfer Document
+
+## Project Overview
+
+Producer is a Python automation framework designed for creating coding videos on macOS. It automates terminal applications (primarily iTerm2) using AppleScript to create scripted sequences of terminal interactions, window positioning, and text input.
+
+## Core Purpose
+
+- **Video Creation**: Automate terminal interactions for coding tutorial videos
+- **Terminal Automation**: Control iTerm2 windows, positioning, and text input
+- **Scripted Sequences**: Define complex automation workflows in YAML
+- **macOS Integration**: Uses AppleScript for native macOS application control
+
+## Architecture Overview
+
+### High-Level Structure
+```
+producer/
+├── producer/           # Main package
+│   ├── apps/          # Application-specific handlers
+│   │   ├── base.py    # BaseApp abstract class
+│   │   ├── terminal.py # TerminalApp for iTerm2
+│   │   └── registry.py # AppRegistry for managing apps
+│   ├── automator.py   # ProducerAutomator main engine
+│   └── main.py        # CLI entry point
+├── scripts/           # Example automation scripts
+└── README.md          # User documentation
+```
+
+### Key Components
+
+#### 1. ProducerAutomator (automator.py)
+- **Main automation engine**
+- Parses YAML scripts and executes scenes/parts
+- Manages current app state
+- Handles scene-level app starting
+- Routes actions to appropriate app handlers
+
+#### 2. BaseApp (apps/base.py)
+- **Abstract base class** for all application handlers
+- Defines common interface: `start()`, `write()`, `wait()`
+- Provides AppleScript execution via `run_applescript()`
+- Handles error management
+
+#### 3. TerminalApp (apps/terminal.py)
+- **iTerm2-specific implementation**
+- Implements all terminal actions: write, position, close, quit
+- Uses AppleScript for window control
+- Dynamic screen size detection for positioning
+- System Events for window manipulation
+
+#### 4. AppRegistry (apps/registry.py)
+- **Manages application types**
+- Maps app names to handler classes
+- Provides fallback logic
+- Extensible for new app types
+
+## Script Format & Structure
+
+### YAML Structure
+```yaml
+name: "Script Name"
+description: "Script description"
+
+scenes:
+  - name: "Scene Name"
+    app: "iTerm"           # App for this scene
+    parts:                 # Actions within scene
+      - action: "write"
+        text: "command"
+      - action: "sleep"
+        duration: 1.0
+```
+
+### Key Concepts
+
+#### Scenes
+- **Logical sections** of automation (like movie scenes)
+- Each scene specifies an `app` (e.g., "iTerm")
+- App is automatically started when scene begins
+- Smart reuse: same app across scenes = same window
+
+#### Parts
+- **Individual actions** within a scene
+- Actions: write, sleep, position, close, quit
+- No need to specify app (inherited from scene)
+
+#### App Management
+- **Implicit starting**: Scene automatically starts specified app
+- **Window reuse**: Same app across scenes reuses existing window
+- **Smart switching**: Different app = new window
+
+## Available Actions
+
+### Core Actions
+
+#### `write`
+- **Purpose**: Type text into terminal
+- **Usage**: `action: "write"` with `text: "command"`
+- **Implementation**: Uses System Events keystroke + Enter
+
+#### `sleep`
+- **Purpose**: Pause execution
+- **Usage**: `action: "sleep"` with `duration: 1.0`
+- **Implementation**: Python `time.sleep()`
+
+#### `position`
+- **Purpose**: Move window to specified location
+- **Usage**: `action: "position"` with `text: "center center"`
+- **Options**: 
+  - Predefined: "center center", "top left", "top right", "bottom left", "bottom right"
+  - Custom: "100 200" (x y coordinates)
+- **Implementation**: System Events window positioning with dynamic screen detection
+
+#### `close`
+- **Purpose**: Close current window (Cmd+W)
+- **Usage**: `action: "close"`
+- **Implementation**: AppleScript `close current window`
+
+#### `quit`
+- **Purpose**: Quit entire application (Cmd+Q)
+- **Usage**: `action: "quit"`
+- **Implementation**: AppleScript `tell application to quit`
+- **Side effect**: Clears `current_app` state
+
+## Technical Implementation Details
+
+### AppleScript Integration
+- **Primary method**: `subprocess.run(['osascript', '-e', script])`
+- **Error handling**: Captures stderr for debugging
+- **Screen detection**: Uses Finder `bounds of window of desktop`
+
+### Window Positioning Logic
+1. **Get screen dimensions**: `tell application "Finder" to set screenSize to bounds of window of desktop`
+2. **Parse coordinates**: Extract width/height from bounds
+3. **Calculate positions**: Center = (screen_width - window_width) / 2
+4. **Apply positioning**: System Events `set position of window 1`
+
+### App State Management
+- **current_app**: Tracks active application handler
+- **Scene switching**: Only starts new app if different from current
+- **Window reuse**: Same app = reuse existing window
+- **Cleanup**: `quit` action clears current_app state
+
+### Error Handling
+- **AppleScript errors**: Captured and displayed
+- **Missing apps**: Graceful fallback to default
+- **Invalid actions**: Warning messages
+- **Screen detection**: Fallback to 1920x1080
+
+## Development Patterns
+
+### Adding New Actions
+1. **Add method** to TerminalApp class
+2. **Update supports_action()** to include new action
+3. **Add handler** in ProducerAutomator._run_parts()
+4. **Update documentation**
+
+### Adding New Apps
+1. **Create new class** inheriting from BaseApp
+2. **Implement required methods**: start(), write()
+3. **Register in AppRegistry**
+4. **Add to registry._register_default_apps()**
+
+### Script Evolution
+- **Backward compatibility**: Supports both old and new formats
+- **Scene detection**: Automatically detects scene structure
+- **Graceful degradation**: Falls back to flat list if needed
+
+## Key Design Decisions
+
+### 1. Scene-Level App Specification
+- **Decision**: App specified per scene, not per action
+- **Rationale**: Reduces repetition, clearer intent
+- **Benefit**: Cleaner scripts, implicit app starting
+
+### 2. Implicit App Starting
+- **Decision**: Automatically start app when scene begins
+- **Rationale**: Obvious intent - if you specify an app, you want to use it
+- **Benefit**: No repetitive `start` actions
+
+### 3. Window Reuse Logic
+- **Decision**: Reuse windows for same app across scenes
+- **Rationale**: Prevents multiple windows for same automation
+- **Benefit**: Cleaner user experience, logical behavior
+
+### 4. System Events for Positioning
+- **Decision**: Use System Events instead of app-specific commands
+- **Rationale**: More reliable, works with any app
+- **Benefit**: Generic positioning that works universally
+
+### 5. Dynamic Screen Detection
+- **Decision**: Detect screen size at runtime
+- **Rationale**: Works on any screen resolution
+- **Benefit**: Portable scripts across different setups
+
+## Common Issues & Solutions
+
+### Multiple Windows Created
+- **Problem**: Each scene creates new window
+- **Solution**: Check if same app, reuse existing window
+- **Code**: `if not self.current_app or self.current_app.app_name != scene_app`
+
+### Positioning Not Working
+- **Problem**: Hardcoded coordinates don't work on different screens
+- **Solution**: Dynamic screen detection via Finder bounds
+- **Code**: `tell application "Finder" to set screenSize to bounds of window of desktop`
+
+### AppleScript Errors
+- **Problem**: App not found or syntax errors
+- **Solution**: Graceful error handling with stderr capture
+- **Code**: `except subprocess.CalledProcessError as e: print(f"AppleScript error: {e.stderr}")`
+
+## Future Extension Points
+
+### New App Types
+- **Vim**: Could add VimApp for vim-specific automation
+- **VS Code**: Could add VSCodeApp for editor automation
+- **Browser**: Could add BrowserApp for web automation
+
+### New Actions
+- **screenshot**: Capture window contents
+- **resize**: Change window dimensions
+- **focus**: Bring window to front
+- **minimize**: Minimize window
+
+### Enhanced Scripting
+- **Variables**: Support for script variables
+- **Conditionals**: If/else logic in scripts
+- **Loops**: Repeat actions
+- **Includes**: Import other script files
+
+## LLM Context for Continuation
+
+### Current State
+- **Working system**: All core functionality implemented
+- **Stable architecture**: Modular, extensible design
+- **Complete documentation**: README and examples
+- **Tested features**: Window positioning, text input, app management
+
+### Recent Developments
+- **Scene/parts structure**: Implemented organized script format
+- **Implicit app starting**: Eliminated repetitive start actions
+- **Window reuse**: Smart window management across scenes
+- **Action naming**: Changed "wait" to "sleep" for clarity
+- **Dual cleanup**: Added both "close" and "quit" actions
+
+### Technical Debt
+- **Error handling**: Could be more robust
+- **Testing**: No automated tests
+- **Documentation**: Could use more inline comments
+- **Performance**: Screen detection happens every position action
+
+### User Experience
+- **Scripts are clean**: No repetition, intuitive structure
+- **Actions are clear**: Descriptive names, obvious behavior
+- **Output is helpful**: Shows scene/part progress
+- **Errors are visible**: AppleScript errors displayed
+
+### Next Steps (Potential)
+- **Add more apps**: Vim, VS Code, etc.
+- **Add more actions**: Screenshot, resize, etc.
+- **Improve error handling**: Better error messages
+- **Add testing**: Unit tests for core functionality
+- **Performance optimization**: Cache screen dimensions
+
+## Code Quality Notes
+
+### Strengths
+- **Clean separation**: Apps, automator, registry well separated
+- **Extensible**: Easy to add new apps and actions
+- **User-friendly**: Intuitive script format
+- **Robust**: Handles edge cases gracefully
+
+### Areas for Improvement
+- **Error handling**: More specific error types
+- **Logging**: Better logging instead of print statements
+- **Configuration**: Make screen detection configurable
+- **Validation**: Validate script format before execution
+
+This knowledge transfer document provides comprehensive understanding of the Producer project for both human developers and LLMs continuing work on the project.
