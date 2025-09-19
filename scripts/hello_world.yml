@@ -2,50 +2,53 @@ name: "Window Position Demo"
 description: "A demo that cycles through all window positions"
 
 steps:
-  setup:
-    - action: "start"
-      app: "iTerm"
-      
-    - action: "wait"
-      duration: 0.5
-      
-    - action: "write"
-      text: "echo 'Starting position demo...'"
+  - name: "Setup"
+    steps:
+      - action: "start"
+        app: "iTerm"
+        
+      - action: "wait"
+        duration: 0.5
+        
+      - action: "write"
+        text: "echo 'Starting position demo...'"
 
-  position_demo:
-    - action: "position"
-      text: "center center"
-      
-    - action: "wait"
-      duration: 1.0
-      
-    - action: "position"
-      text: "top left"
-      
-    - action: "wait"
-      duration: 1.0
-      
-    - action: "position"
-      text: "top right"
-      
-    - action: "wait"
-      duration: 1.0
-      
-    - action: "position"
-      text: "bottom left"
-      
-    - action: "wait"
-      duration: 1.0
-      
-    - action: "position"
-      text: "bottom right"
-      
-    - action: "wait"
-      duration: 1.0
-      
-    - action: "position"
-      text: "center center"
+  - name: "Position Demo"
+    steps:
+      - action: "position"
+        text: "center center"
+        
+      - action: "wait"
+        duration: 1.0
+        
+      - action: "position"
+        text: "top left"
+        
+      - action: "wait"
+        duration: 1.0
+        
+      - action: "position"
+        text: "top right"
+        
+      - action: "wait"
+        duration: 1.0
+        
+      - action: "position"
+        text: "bottom left"
+        
+      - action: "wait"
+        duration: 1.0
+        
+      - action: "position"
+        text: "bottom right"
+        
+      - action: "wait"
+        duration: 1.0
+        
+      - action: "position"
+        text: "center center"
 
-  cleanup:
-    - action: "write"
-      text: "echo 'Position demo complete!'"
+  - name: "Cleanup"
+    steps:
+      - action: "write"
+        text: "echo 'Position demo complete!'"

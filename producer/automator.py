@@ -31,8 +31,15 @@ class ProducerAutomator:
         
         # Check if steps is organized into parts
         if isinstance(steps, dict):
-            # Steps are organized into parts
+            # Steps are organized into parts (old format: part_name: steps)
             for part_name, part_steps in steps.items():
+                print(f"\n📋 Part: {part_name}")
+                self._run_steps(part_steps)
+        elif isinstance(steps, list) and len(steps) > 0 and isinstance(steps[0], dict) and 'name' in steps[0]:
+            # Steps are organized into parts (new format: [{name: "setup", steps: [...]}])
+            for part in steps:
+                part_name = part.get('name', 'Unnamed Part')
+                part_steps = part.get('steps', [])
                 print(f"\n📋 Part: {part_name}")
                 self._run_steps(part_steps)
         else:
