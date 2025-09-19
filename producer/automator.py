@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Terminal and Vim Automator
-Handles automation of terminal applications using AppleScript
+Producer Automator
+Handles automation of various applications using AppleScript
 """
 
-import subprocess
-import time
+from .apps.registry import AppRegistry
 
-class TerminalAutomator:
+class ProducerAutomator:
     def __init__(self):
-        self.app_name = "iTerm2"
+        self.app_registry = AppRegistry()
+        self.current_app = None
     
     def run_applescript(self, script):
         """Execute AppleScript and return the result"""
@@ -33,78 +33,44 @@ class TerminalAutomator:
             action = step.get('action')
             print(f"  Step {i}: {action}")
             
-            if action == 'activate_app':
-                self._activate_app(step.get('app', self.app_name))
-            elif action == 'create_window':
-                self._create_window(step.get('profile', 'default'))
+            if action == 'start':
+                app_name = step.get('app', 'iTerm2')
+                self.current_app = self.app_registry.get_app(app_name)
+                self.current_app.start(**step)
             elif action == 'wait':
-                self._wait(step.get('duration', 0.5))
-            elif action == 'write_text':
-                self._write_text(step.get('text', ''), step.get('target', 'current_session'))
+                duration = step.get('duration', 0.5)
+                if self.current_app:
+                    self.current_app.wait(duration)
+                else:
+                    import time
+                    time.sleep(duration)
+            elif action == 'write':
+                text = step.get('text', '')
+                if self.current_app:
+                    # Extract only the additional parameters, not 'text' or 'action'
+                    extra_params = {k: v for k, v in step.items() if k not in ['text', 'action']}
+                    self.current_app.write(text, **extra_params)
+                else:
+                    print(f"    ⚠️  No active app to write to")
             else:
                 print(f"    ⚠️  Unknown action: {action}")
     
-    def _activate_app(self, app_name):
-        """Activate the specified application"""
-        script = f'tell application "{app_name}" to activate'
-        self.run_applescript(script)
-    
-    def _create_window(self, profile):
-        """Create a new window with specified profile"""
-        script = f'''
-        tell application "{self.app_name}"
-            create window with default profile
-        end tell
-        '''
-        self.run_applescript(script)
-    
-    def _wait(self, duration):
-        """Wait for specified duration"""
-        import time
-        time.sleep(duration)
-    
-    def _write_text(self, text, target):
-        """Write text to the specified target"""
-        if target == 'current_session':
-            script = f'''
-            tell application "{self.app_name}"
-                tell current session of current window
-                    write text "{text}"
-                end tell
-            end tell
-            '''
-        else:
-            print(f"    ⚠️  Unknown target: {target}")
-            return
-        
-        self.run_applescript(script)
 
     def run_iterm_test(self):
         """Simple test - open iTerm, create new window, run clear command"""
-        script = f'''
-        tell application "{self.app_name}"
-            activate
-            
-            -- Create new window
-            create window with default profile
-            
-            -- Wait a moment for window to be ready
-            delay 0.5
-            
-            -- Get the current session and run clear command
-            tell current session of current window
-                write text "clear"
-            end tell
-            
-        end tell
-        '''
+        # Use the new app system
+        terminal_app = self.app_registry.get_app('iTerm2')
         
-        print(f"Opening {self.app_name} and running clear command...")
-        result = self.run_applescript(script)
+        print("Opening iTerm2 and running clear command...")
         
-        if result is not None:
-            print("✅ iTerm automation successful!")
-        else:
-            print("❌ iTerm automation failed!")
+        # Start the app
+        terminal_app.start()
         
-        return result
+        # Wait a moment
+        terminal_app.wait(0.5)
+        
+        # Write the command
+        terminal_app.write("clear")
+        
+        print("✅ iTerm automation successful!")
+        return True

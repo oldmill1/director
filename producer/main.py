@@ -8,7 +8,7 @@ import sys
 import argparse
 import yaml
 import os
-from .automator import TerminalAutomator
+from .automator import ProducerAutomator
 
 def parse_script(script_path):
     """Parse a YAML script file and return the script data"""
@@ -40,7 +40,7 @@ def main():
     script_data = parse_script(script_path)
     
     # Create automator instance
-    automator = TerminalAutomator()
+    automator = ProducerAutomator()
     
     # Run the script
     print(f"🚀 Executing: {script_data.get('name', 'Unnamed Script')}")
